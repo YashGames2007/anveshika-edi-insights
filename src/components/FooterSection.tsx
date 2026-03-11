@@ -16,7 +16,7 @@ const FooterSection = () => {
               <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
                 <Zap className="w-4 h-4 text-primary-foreground" />
               </div>
-              <span className="font-bold text-foreground">Anveshika</span>
+              <span className="font-bold text-foreground">Edi Parser</span>
             </div>
             <p className="text-xs text-muted-foreground leading-relaxed">
               AI-powered EDI parsing and validation for healthcare professionals.
@@ -39,7 +39,7 @@ const FooterSection = () => {
         </div>
         <div className="border-t border-border/30 pt-6 text-center">
           <p className="text-xs text-muted-foreground">
-            © {new Date().getFullYear()} Anveshika. All rights reserved.
+            © {new Date().getFullYear()} Edi Parser. All rights reserved.
           </p>
         </div>
       </div>

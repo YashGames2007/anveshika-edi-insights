@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 const faqs = [
   {
     q: "What EDI formats are supported?",
-    a: "Anveshika supports all major healthcare EDI X12 transaction sets including 837 (Claims), 835 (Remittance Advice), and 834 (Enrollment). We support versions 4010 and 5010.",
+    a: "This Edi Parser supports all major healthcare EDI X12 transaction sets including 837 (Claims), 835 (Remittance Advice), and 834 (Enrollment). We support versions 4010 and 5010.",
   },
   {
     q: "Is healthcare data secure?",
@@ -19,7 +19,7 @@ const faqs = [
     a: "Yes. You can export reports as PDF with highlighted errors, download error-only summaries, or export the full file with annotations. Reports can be shared with team members directly.",
   },
   {
-    q: "Does Anveshika offer an API?",
+    q: "Does this Edi Parser offer an API?",
     a: "Enterprise plans include full REST API access for batch processing, integration with your existing workflows, and webhook notifications for automated validation pipelines.",
   },
 ];
