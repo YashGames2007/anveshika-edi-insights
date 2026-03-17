@@ -1,4 +1,7 @@
 #root {
+  background: hsl(var(--background));
+  color: hsl(210, 22%, 49%);
+  font-family: var(--font-family);
   max-width: 1280px;
   margin: 0 auto;
   padding: 2rem;
@@ -34,9 +37,36 @@
 }
 
 .card {
+  background: hsl(var(--card));
+  color: hsl(210, 22%, 49%);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
   padding: 2em;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-glow);
 }
 
 .read-the-docs {
-  color: #888;
+  color: hsl(210, 22%, 49%);
+  transition: color 0.3s ease;
+}
+
+.read-the-docs:hover {
+  color: hsl(204, 86%, 53%);
+}
+
+.try-demo {
+  @apply btn-demo;
+}
+
+.ai-powered {
+  @apply text-black;
+}
+
+.ai-powered-healthcare {
+  @apply text-purple;
 }

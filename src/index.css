@@ -3,73 +3,41 @@
 @tailwind utilities;
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
 
 @layer base {
   :root {
-    --background: 222 47% 6%;
-    --foreground: 210 40% 96%;
-
-    --card: 222 47% 9%;
-    --card-foreground: 210 40% 96%;
-
-    --popover: 222 47% 9%;
-    --popover-foreground: 210 40% 96%;
-
-    --primary: 250 80% 62%;
-    --primary-foreground: 0 0% 100%;
-
-    --secondary: 222 47% 14%;
-    --secondary-foreground: 210 40% 90%;
-
-    --muted: 222 30% 16%;
-    --muted-foreground: 215 20% 55%;
-
-    --accent: 185 70% 50%;
-    --accent-foreground: 222 47% 6%;
-
-    --destructive: 0 72% 55%;
-    --destructive-foreground: 0 0% 100%;
-
-    --border: 222 30% 18%;
-    --input: 222 30% 18%;
-    --ring: 250 80% 62%;
-
-    --radius: 0.75rem;
-
-    --gradient-primary: linear-gradient(135deg, hsl(250, 80%, 62%), hsl(280, 70%, 55%), hsl(185, 70%, 50%));
-    --gradient-hero: linear-gradient(180deg, hsl(222, 47%, 8%) 0%, hsl(250, 40%, 12%) 50%, hsl(222, 47%, 6%) 100%);
-    --gradient-card: linear-gradient(135deg, hsl(222, 47%, 11%) 0%, hsl(250, 30%, 14%) 100%);
-    --gradient-glass: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
-    --shadow-glow: 0 0 60px -12px hsl(250, 80%, 62%, 0.3);
-    --shadow-card: 0 8px 32px -8px rgba(0, 0, 0, 0.4);
-
-    --sidebar-background: 222 47% 8%;
-    --sidebar-foreground: 210 40% 90%;
-    --sidebar-primary: 250 80% 62%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 222 30% 16%;
-    --sidebar-accent-foreground: 210 40% 90%;
-    --sidebar-border: 222 30% 18%;
-    --sidebar-ring: 250 80% 62%;
-  }
-}
-
-@layer base {
-  * {
-    @apply border-border;
+    --background: hsl(210, 36%, 96%);
+    --foreground: hsl(210, 22%, 49%);
+    --primary: hsl(204, 86%, 53%);
+    --primary-foreground: hsl(0, 0%, 100%);
+    --secondary: hsl(204, 70%, 83%);
+    --secondary-foreground: hsl(204, 86%, 53%);
+    --muted: hsl(210, 16%, 93%);
+    --muted-foreground: hsl(210, 22%, 49%);
+    --card: hsl(0, 0%, 100%);
+    --card-foreground: hsl(210, 22%, 49%);
+    --radius: 0.5rem;
+    --font-family: 'Inter', sans-serif;
+    --font-gradient: linear-gradient(90deg, hsl(204, 86%, 53%), hsl(164, 72%, 50%));
+    --button-gradient: linear-gradient(90deg, hsl(204, 86%, 53%), hsl(164, 72%, 50%));
   }
 
   body {
-    @apply bg-background text-foreground font-sans antialiased;
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-family);
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Inter', sans-serif;
+    background: var(--font-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 700;
   }
 
-  code, pre {
-    font-family: 'JetBrains Mono', monospace;
+  p, span, a {
+    color: hsl(var(--muted-foreground));
   }
 }
 
@@ -92,5 +60,61 @@
 
   .section-container {
     @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  .btn {
+    @apply px-4 py-2 rounded-lg font-medium;
+    font-family: var(--font-family);
+    background: linear-gradient(90deg, hsl(204, 86%, 53%), hsl(164, 72%, 50%));
+    color: hsl(var(--primary-foreground));
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-glow);
+  }
+
+  .btn:active {
+    transform: translateY(0);
+    box-shadow: none;
+  }
+
+  .btn-demo {
+    @apply px-6 py-3 rounded-lg font-semibold;
+    background: linear-gradient(90deg, #3b82f6, #10b981);
+    color: white;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  .btn-demo:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+  }
+
+  .btn-demo:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .navbar-gradient {
+    background: linear-gradient(90deg, #3b82f6, #10b981);
+    color: white;
+  }
+
+  .chatbot-gradient {
+    background: linear-gradient(135deg, #3b82f6, #10b981);
+    color: white;
+  }
+
+  .text-purple {
+    color: #7c3aed;
+    font-weight: bold;
+  }
+
+  .text-black {
+    color: black;
+    font-weight: bold;
   }
 }
