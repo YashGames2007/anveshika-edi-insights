@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   Upload,
   AlertCircle,
@@ -7,26 +7,46 @@ import {
   X
 } from "lucide-react";
 
-export default function DemoSection() {
+interface DemoSectionProps {
+  initialEdi?: string;
+  initialErrors?: any[];
+  initialSegments?: any[];
+  initialMetadata?: any[];
+}
 
-  const [segments, setSegments] = useState<any[]>([]);
-  const [errors, setErrors] = useState<any[]>([]);
-  const [metadata, setMetadata] = useState<any[]>([]);
-  const [rawEDI, setRawEDI] = useState<string[]>([]);
+export default function DemoSection({
+  initialEdi = "",
+  initialErrors = [],
+  initialSegments = [],
+  initialMetadata = [],
+}: DemoSectionProps) {
+
+  const [segments, setSegments] = useState<any[]>(initialSegments);
+  const [errors, setErrors] = useState<any[]>(initialErrors);
+  const [metadata, setMetadata] = useState<any[]>(initialMetadata);
+  const [rawEDI, setRawEDI] = useState<string[]>(
+    initialEdi
+      ? initialEdi.replace(/\n/g, "").split("~").filter(l => l.trim() !== "")
+      : []
+  );
   const [selectedRow, setSelectedRow] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("segments");
 
   const [showFixPopup, setShowFixPopup] = useState(false);
   const [selectedError, setSelectedError] = useState<any | null>(null);
+  const [currentEdi, setCurrentEdi] = useState<string>(initialEdi);
+  const [fixData, setFixData] = useState<{ fixed_edi: string; before_line: string; after_line: string; } | null>(null);
+  const [manualEditMode, setManualEditMode] = useState(false);
+  const [manualAfterText, setManualAfterText] = useState<string>("");
+  const [fixErrorMessage, setFixErrorMessage] = useState<string>("");
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  const handleFileUpload = async (file: File) => {
+  const parseEdi = async (ediText: string) => {
+    setCurrentEdi(ediText);
 
-    const text = await file.text();
-
-    const lines = text
+    const lines = ediText
       .replace(/\n/g, "")
       .split("~")
       .filter(l => l.trim() !== "");
@@ -36,14 +56,13 @@ export default function DemoSection() {
     setLoading(true);
 
     const formData = new FormData();
-    formData.append("file", file);
+    formData.append("file", new Blob([ediText], { type: "text/plain" }), "edi.edi");
 
     try {
-
-      const res = await fetch(
-        "http://127.0.0.1:8000/parse-edi",
-        { method: "POST", body: formData }
-      );
+      const res = await fetch("http://127.0.0.1:8000/parse-edi", {
+        method: "POST",
+        body: formData,
+      });
 
       const data = await res.json();
 
@@ -57,13 +76,16 @@ export default function DemoSection() {
           ? [data.metadata]
           : []
       );
-
     } catch (err) {
       console.error(err);
     }
 
     setLoading(false);
+  };
 
+  const handleFileUpload = async (file: File) => {
+    const text = await file.text();
+    await parseEdi(text);
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -86,18 +108,120 @@ export default function DemoSection() {
   const selectedSegment =
     segments.find(s => s.row === selectedRow);
 
-  const openFixPopup = (err: any) => {
-
+  const handleFixButton = async (err: any) => {
     setSelectedError(err);
+    setFixErrorMessage("");
+    setManualEditMode(false);
+    setFixData(null);
     setShowFixPopup(true);
 
+    if (!currentEdi) {
+      setFixErrorMessage("No EDI content loaded.");
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append("file", new Blob([currentEdi], { type: "text/plain" }), "edi.edi");
+      formData.append("code", err.code);
+      formData.append("row", String(err.row));
+      if (err.column != null) formData.append("column", String(err.column));
+      if (err.segment_id) formData.append("segment_id", String(err.segment_id));
+
+      const res = await fetch("http://127.0.0.1:8000/fix-error", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!res.ok) {
+        throw new Error(`Unable to fix error (${res.status})`);
+      }
+
+      const data = await res.json();
+
+      if (!data.fixed_edi) {
+        setFixErrorMessage("Unable to auto-fix; choose manual");
+        setFixData({
+          fixed_edi: currentEdi,
+          before_line: rawEDI[err.row - 1] || "",
+          after_line: rawEDI[err.row - 1] || "",
+        });
+        setManualAfterText(rawEDI[err.row - 1] || "");
+        return;
+      }
+
+      setFixData({
+        fixed_edi: data.fixed_edi,
+        before_line: data.before_line ?? rawEDI[err.row - 1] ?? "",
+        after_line: data.after_line ?? rawEDI[err.row - 1] ?? "",
+      });
+
+      setManualAfterText(data.after_line ?? rawEDI[err.row - 1] ?? "");
+    } catch (error: any) {
+      setFixErrorMessage(error?.message || "Fix service failed.");
+    }
   };
 
   const beforeCorrection =
-    selectedError ? rawEDI[selectedError.row - 1] : "";
+    fixData?.before_line ?? (selectedError ? rawEDI[selectedError.row - 1] : "");
 
   const afterCorrection =
-    beforeCorrection.replace("999999999", "123456789");
+    fixData?.after_line ?? beforeCorrection;
+
+  const applyEdiFromFix = async (nextEdi: string) => {
+    setShowFixPopup(false);
+    setManualEditMode(false);
+    setFixErrorMessage("");
+    setFixData(null);
+    await parseEdi(nextEdi);
+  };
+
+  const handleAcceptFix = async () => {
+    if (!fixData?.fixed_edi) {
+      setFixErrorMessage("No fixed EDI to accept.");
+      return;
+    }
+    await applyEdiFromFix(fixData.fixed_edi);
+  };
+
+  const handleDeclineFix = () => {
+    setShowFixPopup(false);
+    setManualEditMode(false);
+    setFixData(null);
+    setFixErrorMessage("");
+  };
+
+  const handleStartManualEdit = () => {
+    setManualEditMode(true);
+    setManualAfterText(afterCorrection);
+  };
+
+  const handleConfirmManualFix = async () => {
+    if (!fixData) {
+      setFixErrorMessage("No fix context for manual edit.");
+      return;
+    }
+
+    let updatedEdi = fixData.fixed_edi;
+
+    const originalAfter = fixData.after_line || "";
+    if (manualAfterText && originalAfter) {
+      const escaped = originalAfter.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      updatedEdi = updatedEdi.replace(new RegExp(escaped), manualAfterText);
+    } else {
+      // fallback row-based replacement
+      const rowIndex = selectedError ? selectedError.row - 1 : -1;
+      if (rowIndex >= 0 && rawEDI[rowIndex] !== undefined) {
+        const rawLines = currentEdi.replace(/\n/g, "").split("~");
+        if (rowIndex < rawLines.length) {
+          rawLines[rowIndex] = manualAfterText;
+          updatedEdi = rawLines.join("~") + "~";
+        }
+      }
+    }
+
+    await applyEdiFromFix(updatedEdi);
+  };
 
   return (
 
@@ -353,7 +477,7 @@ export default function DemoSection() {
                         </p>
 
                         <button
-                          onClick={() => openFixPopup(err)}
+                          onClick={() => handleFixButton(err)}
                           className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
                         >
                           <Wrench size={16}/>
@@ -411,31 +535,70 @@ export default function DemoSection() {
 
             </div>
 
+            <div className="mb-2 text-sm text-red-600">
+              {fixErrorMessage}
+            </div>
+
             <div className="mb-8">
 
               <p className="font-semibold text-green-700 mb-2">
                 After Correction
               </p>
 
-              <div className="font-mono bg-green-50 border border-green-400 text-green-900 p-4 rounded">
-                {afterCorrection}~
-              </div>
+              {manualEditMode ? (
+                <textarea
+                  className="w-full h-32 p-2 font-mono bg-white border border-green-400 text-green-900 rounded"
+                  value={manualAfterText}
+                  onChange={(e) => setManualAfterText(e.target.value)}
+                />
+              ) : (
+                <div className="font-mono bg-green-50 border border-green-400 text-green-900 p-4 rounded">
+                  {afterCorrection}~
+                </div>
+              )}
 
             </div>
 
             <div className="flex justify-end gap-4">
 
-              <button className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
-                Accept Correction
+              <button
+                onClick={handleAcceptFix}
+                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+              >
+                Accept
               </button>
 
-              <button className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">
+              <button
+                onClick={handleDeclineFix}
+                className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+              >
                 Decline
               </button>
 
-              <button className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600">
-                Fix Manually
-              </button>
+              {manualEditMode ? (
+                <>
+                  <button
+                    onClick={handleConfirmManualFix}
+                    className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
+                  >
+                    Apply Manual Fix
+                  </button>
+
+                  <button
+                    onClick={() => setManualEditMode(false)}
+                    className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+                  >
+                    Cancel Manual
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={handleStartManualEdit}
+                  className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600"
+                >
+                  Fix Manually
+                </button>
+              )}
 
             </div>
 
