@@ -39,37 +39,41 @@ const EDIDocumentViewer = ({ onClose, errorLine }: Props) => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+      className="fixed inset-0 z-[60] flex items-center justify-center bg-white/70 backdrop-blur-sm p-4"
       onClick={onClose}
     >
       <motion.div
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.9, opacity: 0 }}
-        className="w-full max-w-4xl max-h-[80vh] bg-card text-foreground border border-border/30 rounded-xl overflow-hidden shadow-lg flex flex-col"
+        className="w-full max-w-4xl max-h-[80vh] text-slate-900 rounded-xl overflow-hidden shadow-2xl flex flex-col"
+        style={{
+          background: "linear-gradient(145deg, #dbeafe 0%, #d1fae5 60%, #ecfeff 100%)",
+          border: "1px solid #7dd3fc",
+        }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-border/50">
+        <div className="flex items-center justify-between p-4 border-b border-blue-200">
           <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-foreground font-mono">sample_837_claim.edi</span>
-            <span className="text-xs text-muted-foreground">— 17 lines</span>
+            <span className="text-sm font-semibold text-blue-900 font-mono">sample_837_claim.edi</span>
+            <span className="text-xs text-slate-600">— 17 lines</span>
           </div>
-          <button onClick={onClose} className="p-1 rounded hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-colors">
+          <button onClick={onClose} className="p-1 rounded hover:bg-blue-100 text-blue-700 hover:text-blue-900 transition-colors">
             <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Code viewer */}
-        <div className="flex-1 overflow-auto p-0 font-mono text-xs">
+        <div className="flex-1 overflow-auto p-0 font-mono text-xs bg-white/80">
           {sampleEDILines.map((line) => (
             <div
               key={line.number}
               id={`edi-line-${line.number}`}
               className={`flex group relative ${
                 line.hasError
-                  ? "bg-destructive/10 border-l-2 border-destructive"
-                  : "border-l-2 border-transparent hover:bg-muted/20"
+                  ? "bg-red-50 border-l-2 border-red-400"
+                  : "border-l-2 border-transparent hover:bg-sky-50"
               }`}
             >
               <span className="w-10 shrink-0 text-right pr-3 py-1 text-foreground/70 select-none border-r border-border/30">

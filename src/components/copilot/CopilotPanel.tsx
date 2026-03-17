@@ -54,14 +54,72 @@ const initialMessages: ChatMessage[] = [
 ];
 
 const CopilotPanel = () => {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
   const [side, setSide] = useState<"right" | "left">("right");
+  const [width, setWidth] = useState(380);
+  const [isResizing, setIsResizing] = useState(false);
   const [mode, setMode] = useState<"ask" | "auto">("ask");
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [input, setInput] = useState("");
   const [placeholderIdx, setPlaceholderIdx] = useState(0);
   const [showViewer, setShowViewer] = useState(false);
   const [viewerErrorLine, setViewerErrorLine] = useState<number | undefined>();
+
+  // Keep container margin in sync with open state for split-page effect
+  useEffect(() => {
+    const rootEl = document.getElementById("root") || document.body;
+    const navEl = document.querySelector("nav");
+
+    const setMargins = (margin: string) => {
+      rootEl.style.marginLeft = "";
+      rootEl.style.marginRight = "";
+      navEl?.style?.setProperty("margin-left", "");
+      navEl?.style?.setProperty("margin-right", "");
+
+      if (margin === "left") {
+        rootEl.style.marginLeft = `${width}px`;
+        navEl?.style?.setProperty("margin-left", `${width}px`);
+      } else if (margin === "right") {
+        rootEl.style.marginRight = `${width}px`;
+        navEl?.style?.setProperty("margin-right", `${width}px`);
+      }
+    };
+
+    if (open) {
+      setMargins(side);
+    } else {
+      setMargins("");
+    }
+
+    return () => {
+      rootEl.style.marginLeft = "";
+      rootEl.style.marginRight = "";
+      if (navEl) {
+        navEl.style.marginLeft = "";
+        navEl.style.marginRight = "";
+      }
+    };
+  }, [open, side, width]);
+
+  // Resize drag behavior
+  useEffect(() => {
+    if (!isResizing) return;
+
+    const handleMouseMove = (event: MouseEvent) => {
+      const newWidth = side === "right" ? window.innerWidth - event.clientX : event.clientX;
+      setWidth(Math.min(600, Math.max(320, newWidth)));
+    };
+
+    const handleMouseUp = () => setIsResizing(false);
+
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [isResizing, side]);
 
   // Rotate placeholders
   useEffect(() => {
@@ -132,15 +190,22 @@ const CopilotPanel = () => {
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: isRight ? 400 : -400, opacity: 0 }}
             transition={{ type: "spring", damping: 28, stiffness: 300 }}
-            className={`fixed top-0 ${isRight ? "right-0" : "left-0"} z-50 h-full w-[380px] max-w-[90vw] flex flex-col border-border/50 ${
+            className={`fixed top-0 ${isRight ? "right-0" : "left-0"} z-50 h-full max-w-[90vw] flex flex-col border-border/50 ${
               isRight ? "border-l" : "border-r"
             } text-foreground bg-card`}
             style={{
+              width: width,
               background: "hsl(var(--card))",
               color: "hsl(var(--card-foreground))",
               backdropFilter: "blur(10px)",
             }}
           >
+            {/* Resizer track */}
+            <div
+              onMouseDown={() => setIsResizing(true)}
+              className={`absolute top-0 bottom-0 ${isRight ? "left-0" : "right-0"} w-2 cursor-col-resize z-50`}
+              style={{ touchAction: "none" }}
+            />
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-border/50">
               <div className="flex items-center gap-2">
@@ -150,10 +215,10 @@ const CopilotPanel = () => {
                 >
                   <Sparkles className="w-4 h-4 text-primary-foreground" />
                 </div>
-                <span className="text-sm font-semibold text-foreground">
-                  Copilot
+                <span className="text-lg font-bold" style={{ color: "hsl(204, 86%, 34%)" }}>
+                  Copilot AI
                 </span>
-                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-primary/20 text-primary font-medium">
+                <span className="text-[11px] px-1.5 py-0.5 rounded-full" style={{ background: "linear-gradient(90deg, hsl(204, 86%, 53%), hsl(164, 72%, 50%))", color: "white" }}>
                   AI
                 </span>
               </div>
@@ -227,10 +292,15 @@ const CopilotPanel = () => {
                     {msg.hasViewDoc && (
                       <button
                         onClick={() => openDocViewer(msg.errorLine)}
-                        className="mt-2 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20 transition-colors"
+                        className="mt-2 flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-semibold text-sm text-slate-900 transition-all"
+                        style={{
+                          background: "linear-gradient(90deg, #eff6ff, #d1fae5)",
+                          boxShadow: "0 4px 10px rgba(0,0,0,0.12)",
+                          border: "1px solid #a5f3fc",
+                        }}
                       >
-                        <FileSearch className="w-3 h-3" />
-                        View Document
+                        <FileSearch className="w-3 h-3 text-slate-700" />
+                        View Documentation
                       </button>
                     )}
                   </div>
@@ -245,20 +315,30 @@ const CopilotPanel = () => {
                 {([
                   { key: "ask" as const, label: "Ask", icon: MessageSquare },
                   { key: "auto" as const, label: "Auto", icon: Zap },
-                ] as const).map((m) => (
-                  <button
-                    key={m.key}
-                    onClick={() => setMode(m.key)}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                      mode === m.key
-                        ? "bg-primary/20 text-primary"
-                        : "text-muted-foreground hover:text-foreground hover:bg-muted/30"
-                    }`}
-                  >
-                    <m.icon className="w-3 h-3" />
-                    {m.label}
-                  </button>
-                ))}
+                ] as const).map((m) => {
+                  const isActive = mode === m.key;
+                  return (
+                    <button
+                      key={m.key}
+                      onClick={() => setMode(m.key)}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold transition-all ${
+                        isActive
+                          ? "text-slate-900"
+                          : "text-slate-700"
+                      }`}
+                      style={{
+                        background: isActive
+                          ? "linear-gradient(90deg, #dbeafe, #d1fae5)"
+                          : "linear-gradient(90deg, #f8fafc, #ecfdf5)",
+                        border: "1px solid #a5f3fc",
+                        boxShadow: isActive ? "0 3px 8px rgba(59,130,246,0.18)" : "0 2px 6px rgba(15,23,42,0.08)",
+                      }}
+                    >
+                      <m.icon className="w-3 h-3" />
+                      {m.label}
+                    </button>
+                  );
+                })}
               </div>
 
               {/* Input */}
@@ -288,8 +368,12 @@ const CopilotPanel = () => {
                 </div>
                 <button
                   onClick={handleSend}
-                  className="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center text-primary-foreground transition-transform hover:scale-105 active:scale-95"
-                  style={{ background: "var(--gradient-primary)" }}
+                  className="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center text-slate-900 transition-transform hover:scale-105 active:scale-95"
+                  style={{
+                    background: "linear-gradient(90deg, #dbeafe, #d1fae5)",
+                    boxShadow: "0 4px 10px rgba(0,0,0,0.12)",
+                    border: "1px solid #93c5fd"
+                  }}
                 >
                   <Send className="w-4 h-4" />
                 </button>

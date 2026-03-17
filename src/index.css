@@ -125,7 +125,7 @@
   }
 
   .text-black {
-    color: black;
+    color: hsl(204, 86%, 33%);
     font-weight: bold;
   }
 }

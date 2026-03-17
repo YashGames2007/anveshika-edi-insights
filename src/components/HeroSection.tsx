@@ -15,7 +15,12 @@ const HeroSection = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/30 bg-primary/10 text-sm text-primary mb-6"
+            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/30 bg-primary/10 text-sm font-semibold mb-6"
+            style={{
+              background: "linear-gradient(90deg, hsl(204, 86%, 53%), hsl(164, 72%, 50%))",
+              color: "white",
+              boxShadow: "0 4px 12px rgba(0,0,0,0.18)",
+            }}
           >
             <Zap className="w-3.5 h-3.5" />
             AI-Powered Healthcare EDI Analysis
@@ -64,7 +69,11 @@ const HeroSection = () => {
             </a>
             <a
               href="#features"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-lg text-muted-foreground text-sm hover:text-foreground transition-colors"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-lg text-white text-sm font-semibold transition-all"
+              style={{
+                background: "linear-gradient(90deg, hsl(204, 86%, 53%), hsl(164, 72%, 50%))",
+                boxShadow: "0 4px 10px rgba(0,0,0,0.18)",
+              }}
             >
               <BookOpen className="w-4 h-4" />
               View Documentation
