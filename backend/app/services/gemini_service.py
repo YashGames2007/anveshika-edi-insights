@@ -3,6 +3,13 @@ from app.config import GEMINI_API_KEY, MODEL_NAME
 
 client = None
 
+def decode_key(key: str) -> str:
+    """
+    Encode each character by shifting its ASCII code by -5.
+    Non-ASCII safe by using Python int/chr behavior.
+    """
+    return "".join(chr(ord(c) - 5) for c in key)
+
 def _get_client():
     global client
     if client is None:
@@ -10,7 +17,7 @@ def _get_client():
             raise RuntimeError(
                 "GEMINI_API_KEY is missing. Set GEMINI_API_KEY in environment or .env"
             )
-        client = genai.Client(api_key=GEMINI_API_KEY)
+        client = genai.Client(api_key=decode_key(GEMINI_API_KEY))
     return client
 
 
