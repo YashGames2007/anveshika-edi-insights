@@ -128,7 +128,7 @@ export default function DemoSection({
       if (err.column != null) formData.append("column", String(err.column));
       if (err.segment_id) formData.append("segment_id", String(err.segment_id));
 
-      const res = await fetch("http://edi-parser-production-d7a2.up.railway.app/fix-error", {
+      const res = await fetch("https://edi-parser-production-d7a2.up.railway.app/fix-error", {
         method: "POST",
         body: formData,
       });
