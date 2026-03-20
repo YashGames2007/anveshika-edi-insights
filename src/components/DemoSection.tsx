@@ -225,7 +225,7 @@ export default function DemoSection({
 
   return (
 
-    <section className="py-16 bg-gray-50">
+    <section id="demo" className="py-16 bg-gray-50">
 
       <div className="max-w-7xl mx-auto px-6">
 

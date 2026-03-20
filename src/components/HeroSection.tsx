@@ -32,8 +32,8 @@ const HeroSection = () => {
             transition={{ duration: 0.6, delay: 0.1 }}
             className="text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-tight mb-6"
           >
-            <span className="text-foreground">AI Powered </span>
-            <span className="gradient-text">EDI Parser</span>
+            <span className="text-foreground">OpenEDI: </span>
+            <span className="gradient-text">AI-Assisted EDI Parser</span>
             <span className="text-foreground"> & Validator</span>
           </motion.h1>
 
